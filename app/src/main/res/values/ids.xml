@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="listView" type="id">listView</item>
+    <item name="list_item_icon" type="id">list_item_icon</item>
+    <item name="list_item_name" type="id">list_item_name</item>
+    <item name="artist_name" type="id">artist_name</item>
+    <item name="song_image" type="id">song_image</item>
+    <item name="controlsWrapper" type="id">controlsWrapper</item>
+</resources>
