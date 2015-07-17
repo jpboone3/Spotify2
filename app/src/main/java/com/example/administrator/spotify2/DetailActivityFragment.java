@@ -266,7 +266,7 @@ public class DetailActivityFragment extends Fragment {
                 task.execute(mAlbum);
             }
         } else {
-            Toast.makeText(getActivity(), "Thje network is nurrent,ly offline.", Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), R.id.no_network, Toast.LENGTH_LONG).show();
 
         }
     }
@@ -366,7 +366,7 @@ public class DetailActivityFragment extends Fragment {
         protected void onPostExecute(ArrayList l) {
             mArtistadApter.clear();
             if (l == null || l.size() == 0) {
-                Toast.makeText(getActivity(), "No artists were found to display, please refine your search.", Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), R.id.no_tracks, Toast.LENGTH_LONG).show();
                 return;
             }
             // update UI to show last track selected, if any

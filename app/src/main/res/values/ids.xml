@@ -7,4 +7,8 @@
     <item name="song_image" type="id">song_image</item>
     <item name="controlsWrapper" type="id">controlsWrapper</item>
     <item name="action_settings" type="id">Settings</item>
+    <item name="no_network" type="id">Network is offline</item>
+    <item name="no_artists" type="id">No albums found for this artist, refine your search</item>
+    <item name="no_tracks" type="id">No tracks were found for this album</item>
+    <item name="max_artists" type="id">Showing the first 40 albims for this artist</item>
 </resources>

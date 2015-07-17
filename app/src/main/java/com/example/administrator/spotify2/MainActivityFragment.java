@@ -225,7 +225,7 @@ public class MainActivityFragment extends Fragment {
                 mArtist_name.setInputType(InputType.TYPE_CLASS_TEXT);
             }
         } else {
-            Toast.makeText(getActivity(), "Thje network is nurrent,ly offline.", Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), R.id.no_network, Toast.LENGTH_LONG).show();
 
         }
     }
@@ -326,7 +326,7 @@ public class MainActivityFragment extends Fragment {
             mArtist_name.setInputType(InputType.TYPE_CLASS_TEXT);
             //Log.d("lengthg ", "length: " + s.length);
             if (l == null || l.size() == 0) {
-                Toast.makeText(getActivity(), "No martists were found to display, refine your search.", Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), R.id.no_artists, Toast.LENGTH_LONG).show();
                 return;
             }
 
@@ -351,7 +351,7 @@ public class MainActivityFragment extends Fragment {
             mArtistadApter.addAll(l);
             mStreamerList = l;
             if (l.size() >= MAX_MARTISTS_TO_LIST)
-                Toast.makeText(getActivity(), "Only showing first " + MAX_MARTISTS_TO_LIST + " martists that match the search.", Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), R.id.max_artists, Toast.LENGTH_LONG).show();
         }
     }
 }
