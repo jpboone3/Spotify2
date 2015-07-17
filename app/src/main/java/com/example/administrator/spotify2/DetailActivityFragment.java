@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -56,6 +58,8 @@ public class DetailActivityFragment extends Fragment {
     private Intent playIntent = null;
     //private MediaPlayer mediaPlayer;
     private ListView mListView;
+    private boolean mConnected = false;
+    private ArrayList mStreamerList = null;
 
     public DetailActivityFragment() {
     }
@@ -76,11 +80,28 @@ public class DetailActivityFragment extends Fragment {
             //throw new ClassCastException(activity.toString()
             //        + " must implement setTracks");
         }
+        // This should never be false since the main activity will check this first.
+        // If the user is on a phone and on the tracks UI, then set the
+        // phone to airplane mode, then we will test for this situation.
+        ConnectivityManager cm =
+                (ConnectivityManager) activity.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo an = cm.getActiveNetworkInfo();
+        if (an != null && an.isConnectedOrConnecting())
+            mConnected = true;
+        else
+            mConnected = false;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            mStreamerList = savedInstanceState.getParcelableArrayList("streamerlist");
+            //mArtistadApter.addAll(mStreamerList);
+        } else
+            mStreamerList = null;
+
         mContext = getActivity().getApplicationContext();
 
         mAudioConnection = new ServiceConnection() {
@@ -196,6 +217,9 @@ public class DetailActivityFragment extends Fragment {
     // the top 10 tracks when the UI is initated
     // on a tablet
     public void startTrackList(String album) {
+        // if the album has changed, must read the tracks for the new album
+        if (mAlbum != null && mAlbum.equals(album) == false)
+            mStreamerList = null;
         mAlbum = album;
         updateTracks();
     }
@@ -218,14 +242,30 @@ public class DetailActivityFragment extends Fragment {
         mContext.stopService(playIntent);
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList("streamerlist", mStreamerList);
+        super.onSaveInstanceState(outState);
+    }
+
     protected void updateTracks() {
 
         // Load the song image
-        if (mAlbum != null && mAlbum.length() > 0) {
-            //boolean metric = preferences.getBoolean("pref_metric", true);
-            DetailActivityFragment.TracklisttaSk task = new DetailActivityFragment.TracklisttaSk();
+        if (mStreamerList != null) {
+            mArtistadApter.clear();
+            mArtistadApter.addAll(mStreamerList);
+            return;
+        }
+        if (mConnected) {
+            if (mAlbum != null && mAlbum.length() > 0) {
+                //boolean metric = preferences.getBoolean("pref_metric", true);
+                DetailActivityFragment.TracklisttaSk task = new DetailActivityFragment.TracklisttaSk();
 
-            task.execute(mAlbum);
+                task.execute(mAlbum);
+            }
+        } else {
+            Toast.makeText(getActivity(), "Thje network is nurrent,ly offline.", Toast.LENGTH_LONG).show();
+
         }
     }
 
@@ -233,7 +273,7 @@ public class DetailActivityFragment extends Fragment {
         public boolean setTracks(String artist, String album, String song, ArrayList songs, ArrayList tracks, ArrayList images);
     }
 
-    public class TracklisttaSk extends AsyncTask<String, String, List> {
+    public class TracklisttaSk extends AsyncTask<String, String, ArrayList> {
 
         static final String myLOGFILTER = "ArtisTlisttaSk";
 
@@ -241,11 +281,11 @@ public class DetailActivityFragment extends Fragment {
         public TracklisttaSk() {
         }
 
-        protected List doInBackground(String... params) {
+        protected ArrayList doInBackground(String... params) {
 
             String mQuery = params[0]; //.trim().replaceAll(" ", "%20");
 
-            List<StreamerArtist> mSlist = new ArrayList<StreamerArtist>();
+            ArrayList<StreamerArtist> mSlist = new ArrayList<StreamerArtist>();
 
             SpotifyApi mApi = new SpotifyApi();
             if (mApi == null) {
@@ -265,7 +305,7 @@ public class DetailActivityFragment extends Fragment {
                 Track a = (Track) listOfArtists.get(i);
                 sa.setName(a.name);
 
-                sa.setDuration(a.duration_ms);
+                sa.setDuration((int) a.duration_ms);
                 sa.setArtist(((ArtistSimple) a.artists.get(0)).name);
                 sa.setTrackNumber(a.disc_number);
                 sa.setPopularity(a.popularity);
@@ -321,7 +361,7 @@ public class DetailActivityFragment extends Fragment {
             return mSlist;
         }
 
-        protected void onPostExecute(List l) {
+        protected void onPostExecute(ArrayList l) {
             mArtistadApter.clear();
             if (l == null || l.size() == 0) {
                 Toast.makeText(getActivity(), "No artists were found to display, please refine your search.", Toast.LENGTH_LONG).show();
@@ -338,6 +378,7 @@ public class DetailActivityFragment extends Fragment {
                 sa.setSelected(true);
             }
             mArtistadApter.addAll(l);
+            mStreamerList = l;
             super.onPostExecute(l);
         }
     }

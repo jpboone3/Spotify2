@@ -6,4 +6,5 @@
     <item name="artist_name" type="id">artist_name</item>
     <item name="song_image" type="id">song_image</item>
     <item name="controlsWrapper" type="id">controlsWrapper</item>
+    <item name="action_settings" type="id">Settings</item>
 </resources>

@@ -171,7 +171,7 @@ public class AudioFragment extends DialogFragment
         mediaController.setAnchorView(rootView.findViewById(R.id.main_audio_view));
         mediaController.setEnabled(true);
         mediaController.requestFocus();
-        mediaController.show();
+
         ((ViewGroup) mediaController.getParent()).removeView(mediaController);
         ((FrameLayout) rootView.findViewById(R.id.controlsWrapper)).addView(mediaController);
 

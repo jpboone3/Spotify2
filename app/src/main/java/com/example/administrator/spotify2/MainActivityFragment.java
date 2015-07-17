@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -50,7 +52,8 @@ public class MainActivityFragment extends Fragment {
     private String mArtist;
     private ListView mListView;
     private int mArtistSelected = -1;
-
+    private boolean mConnected = false;
+    private ArrayList mStreamerList = null;
 
     public MainActivityFragment() {
     }
@@ -67,17 +70,32 @@ public class MainActivityFragment extends Fragment {
             throw new ClassCastException(activity.toString()
                     + " must implement setAlbumSelected");
         }
+        ConnectivityManager cm =
+                (ConnectivityManager) activity.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo an = cm.getActiveNetworkInfo();
+        if (an != null && an.isConnectedOrConnecting())
+            mConnected = true;
+        else
+            mConnected = false;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            mStreamerList = savedInstanceState.getParcelableArrayList("streamerlist");
+            //mArtistadApter.addAll(mStreamerList);
+        } else
+            mStreamerList = null;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         setHasOptionsMenu(true);
+
+
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         ArrayList<String> ar = new ArrayList();
         ar.add("No Artist loaded");
@@ -99,7 +117,6 @@ public class MainActivityFragment extends Fragment {
         mArtist_name.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-
                 SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
                 mArtist = preferences.getString("pref_artist", null);
                 if (mArtist_name.getText().equals(mArtist) == false) {
@@ -145,10 +162,11 @@ public class MainActivityFragment extends Fragment {
                 prefEditor.putInt("pref_track_selected", -1); //**syntax error on tokens**
                 prefEditor.commit();
 
+                // invalidate to show highligted artist
+                mListView.invalidateViews();
                 if (mCallback.setAlbumSelected(mArtist, text) == true) {
                     // the view list may have a different selected album
                     // force a repaint to ensure the selection is correct
-                    mListView.invalidateViews();
                     return;
                 }
                 Intent i = new Intent(getActivity(), com.example.administrator.spotify2.DetailActivity.class);
@@ -169,20 +187,45 @@ public class MainActivityFragment extends Fragment {
 
     }
 
-    /**
-     * method to invoke the building of the artist list
-     */
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList("streamerlist", mStreamerList);
+        super.onSaveInstanceState(outState);
+    }
 
     protected void updateMartists() {
+        if (mStreamerList != null) {
+            mArtistadApter.clear();
+            mArtistadApter.addAll(mStreamerList);
+            mArtistSelected = -1;
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            if (preferences != null) {
+                mArtistSelected = preferences.getInt("pref_artist_selected", -1);
+            }
+            // update the UI with the selected item highlighted
+            if (mArtistSelected >= 0) {
+                StreamerArtist sa = (StreamerArtist) mStreamerList.get(mArtistSelected);
 
-        ArtisTlisttaSk task = new ArtisTlisttaSk();
-        String mTemp = mArtist_name.getText().toString();
-        if (mTemp != null && mTemp.length() > 0) {
-            task.execute(mTemp);
-        } else {
-            mArtist_name.setInputType(InputType.TYPE_CLASS_TEXT);
+                // may be on tablet UI, immediate populate
+                // top 10 track list
+                mCallback.setAlbumSelected(mArtist, sa.getName());
+
+                sa.setSelected(true);
+            }
+            return;
         }
+        if (mConnected) {
+            ArtisTlisttaSk task = new ArtisTlisttaSk();
+            String mTemp = mArtist_name.getText().toString();
+            if (mTemp != null && mTemp.length() > 0) {
+                task.execute(mTemp);
+            } else {
+                mArtist_name.setInputType(InputType.TYPE_CLASS_TEXT);
+            }
+        } else {
+            Toast.makeText(getActivity(), "Thje network is nurrent,ly offline.", Toast.LENGTH_LONG).show();
 
+        }
     }
 
     @Override
@@ -208,17 +251,17 @@ public class MainActivityFragment extends Fragment {
         public boolean setAlbumSelected(String artist, String album);
     }
 
-    public class ArtisTlisttaSk extends AsyncTask<String, String, List> {
+    public class ArtisTlisttaSk extends AsyncTask<String, String, ArrayList> {
 
         static final String myLOGFILTER = "ArtisTlisttaSk";
 
         public ArtisTlisttaSk() {
         }
 
-        protected List doInBackground(String... params) {
+        protected ArrayList doInBackground(String... params) {
             String q = params[0].trim();
 
-            List<StreamerArtist> mSl = new ArrayList<StreamerArtist>();
+            ArrayList<StreamerArtist> mSl = new ArrayList<StreamerArtist>();
 
             SpotifyApi api = new SpotifyApi();
             if (api == null)
@@ -276,7 +319,7 @@ public class MainActivityFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(List l) {
+        protected void onPostExecute(ArrayList l) {
             mArtistadApter.clear();
             mArtist_name.setInputType(InputType.TYPE_CLASS_TEXT);
             //Log.d("lengthg ", "length: " + s.length);
@@ -304,6 +347,7 @@ public class MainActivityFragment extends Fragment {
             }
 
             mArtistadApter.addAll(l);
+            mStreamerList = l;
             if (l.size() >= MAX_MARTISTS_TO_LIST)
                 Toast.makeText(getActivity(), "Only showing first " + MAX_MARTISTS_TO_LIST + " martists that match the search.", Toast.LENGTH_LONG).show();
         }
