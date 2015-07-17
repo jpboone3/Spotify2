@@ -56,9 +56,7 @@ public class DetailActivityFragment extends Fragment {
     private View rootView = null;
     private ServiceConnection mAudioConnection = null;
     private Intent playIntent = null;
-    //private MediaPlayer mediaPlayer;
     private ListView mListView;
-    private boolean mConnected = false;
     private ArrayList mStreamerList = null;
 
     public DetailActivityFragment() {
@@ -80,16 +78,6 @@ public class DetailActivityFragment extends Fragment {
             //throw new ClassCastException(activity.toString()
             //        + " must implement setTracks");
         }
-        // This should never be false since the main activity will check this first.
-        // If the user is on a phone and on the tracks UI, then set the
-        // phone to airplane mode, then we will test for this situation.
-        ConnectivityManager cm =
-                (ConnectivityManager) activity.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo an = cm.getActiveNetworkInfo();
-        if (an != null && an.isConnectedOrConnecting())
-            mConnected = true;
-        else
-            mConnected = false;
     }
 
     @Override
@@ -241,6 +229,20 @@ public class DetailActivityFragment extends Fragment {
         mContext.unbindService(mAudioConnection);
         mContext.stopService(playIntent);
     }
+    private boolean isConnected() {
+        // This should never be false since the main activity will check this first.
+        // If the user is on a phone and on the tracks UI, then set the
+        // phone to airplane mode, then we will test for this situation.
+        ConnectivityManager cm =
+                (ConnectivityManager) getActivity().getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo an = cm.getActiveNetworkInfo();
+        if (an != null && an.isConnectedOrConnecting())
+            return true;
+        else
+            return false;
+
+    }
+
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -256,7 +258,7 @@ public class DetailActivityFragment extends Fragment {
             mArtistadApter.addAll(mStreamerList);
             return;
         }
-        if (mConnected) {
+        if (isConnected()) {
             if (mAlbum != null && mAlbum.length() > 0) {
                 //boolean metric = preferences.getBoolean("pref_metric", true);
                 DetailActivityFragment.TracklisttaSk task = new DetailActivityFragment.TracklisttaSk();

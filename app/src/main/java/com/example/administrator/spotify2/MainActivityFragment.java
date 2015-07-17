@@ -52,7 +52,6 @@ public class MainActivityFragment extends Fragment {
     private String mArtist;
     private ListView mListView;
     private int mArtistSelected = -1;
-    private boolean mConnected = false;
     private ArrayList mStreamerList = null;
 
     public MainActivityFragment() {
@@ -70,13 +69,6 @@ public class MainActivityFragment extends Fragment {
             throw new ClassCastException(activity.toString()
                     + " must implement setAlbumSelected");
         }
-        ConnectivityManager cm =
-                (ConnectivityManager) activity.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo an = cm.getActiveNetworkInfo();
-        if (an != null && an.isConnectedOrConnecting())
-            mConnected = true;
-        else
-            mConnected = false;
     }
 
     @Override
@@ -192,6 +184,16 @@ public class MainActivityFragment extends Fragment {
         outState.putParcelableArrayList("streamerlist", mStreamerList);
         super.onSaveInstanceState(outState);
     }
+    private boolean isConnected() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getActivity().getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo an = cm.getActiveNetworkInfo();
+        if (an != null && an.isConnectedOrConnecting())
+            return true;
+        else
+            return false;
+
+    }
 
     protected void updateMartists() {
         if (mStreamerList != null) {
@@ -214,7 +216,7 @@ public class MainActivityFragment extends Fragment {
             }
             return;
         }
-        if (mConnected) {
+        if (isConnected()) {
             ArtisTlisttaSk task = new ArtisTlisttaSk();
             String mTemp = mArtist_name.getText().toString();
             if (mTemp != null && mTemp.length() > 0) {
