@@ -145,6 +145,12 @@ public class DetailActivityFragment extends Fragment {
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                if (isConnected() == false) {
+                    Toast.makeText(getActivity(), R.id.no_network, Toast.LENGTH_LONG).show();
+                    return;
+                }
+
                 //parent,getItemAtPosition(position);
                 StreamerArtist sa = (StreamerArtist) parent.getItemAtPosition(position);
                 int dur = (int) sa.getDuration() / 1000;
@@ -186,6 +192,7 @@ public class DetailActivityFragment extends Fragment {
                 if (mCallback != null && mCallback.setTracks(mArtist, mAlbum, sa.getPreviewUrl(), songs, tracks, images))
                     return;
 
+
                 i.putStringArrayListExtra("songs", (ArrayList<String>) songs);
                 i.putStringArrayListExtra("tracks", (ArrayList<String>) tracks);
                 i.putStringArrayListExtra("images", (ArrayList<String>) images);
@@ -205,6 +212,17 @@ public class DetailActivityFragment extends Fragment {
     // the top 10 tracks when the UI is initated
     // on a tablet
     public void startTrackList(String album) {
+        if (album == null) {
+            // need to clear the list view
+            // this condition is because the artist
+            // had no albums and we need to cleanup
+            // our old list
+            mStreamerList = null;
+            if (mArtistadApter != null)
+                mArtistadApter.clear();
+            mListView.invalidate();
+            return;
+        }
         // if the album has changed, must read the tracks for the new album
         if (mAlbum != null && mAlbum.equals(album) == false)
             mStreamerList = null;
@@ -240,7 +258,6 @@ public class DetailActivityFragment extends Fragment {
             return true;
         else
             return false;
-
     }
 
 

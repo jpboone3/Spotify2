@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.FragmentActivity;
 import android.view.MotionEvent;
@@ -34,15 +33,13 @@ public class AudioActivity extends FragmentActivity
 
     private static final String TAG = "AudioActivity";
 
-    private MediaController mediaController;
+    private MediaController mediaController = null;
     private String audioFile;
     private String trackName;
     private String albumName;
     private String artistName;
     private String songImageUrl;
     private ImageView mSongImage;
-    private boolean mMmediaCleaned = false;
-    private Handler handler = new Handler();
     private ArrayList<String> songs;
     private ArrayList<String> tracks;
     private ArrayList<String> images;
@@ -52,8 +49,9 @@ public class AudioActivity extends FragmentActivity
 
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate (Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.audio);
 
         songImageUrl = this.getIntent().getStringExtra("song_url");
@@ -72,8 +70,9 @@ public class AudioActivity extends FragmentActivity
 
         ((TextView) findViewById(R.id.now_playing_text)).setText(trackName);
 
-        mSongImage = (ImageView) findViewById(R.id.song_image);
+        mediaController = new MediaController(this);
 
+        mSongImage = (ImageView) findViewById(R.id.song_image);
         mAudioConnection = new ServiceConnection() {
 
             @Override
@@ -82,7 +81,10 @@ public class AudioActivity extends FragmentActivity
                 //get service
                 mAudioService = binder.getService();
                 if (mAudioService != null) {
+                    //mediaController.setMediaPlayer((MediaController.MediaPlayerControl) mAudioService.getMediaPlayer());
+                    //mAudioService.setMediaController(mediaController);
                     mAudioService.playSong(audioFile);
+                    //mAudioService.stop();
                 }
 
             }
@@ -96,10 +98,8 @@ public class AudioActivity extends FragmentActivity
         playIntent = new Intent(getApplicationContext(), AudioService.class);
         getApplicationContext().bindService(playIntent, mAudioConnection, Context.BIND_AUTO_CREATE);
 
-        mediaController = new MediaController(this);
         mediaController.setMediaPlayer(this);
-        mediaController.setAnchorView(findViewById(R.id.main_audio_view));
-        mediaController.setEnabled(true);
+        mediaController.setAnchorView(findViewById(R.id.controlsWrapper));
 
         mediaController.setPrevNextListeners(new View.OnClickListener() {
             @Override
@@ -114,7 +114,6 @@ public class AudioActivity extends FragmentActivity
                 setNewSong(false);
             }
         });
-
         AudioActivity.SongimagetaSk task = new AudioActivity.SongimagetaSk();
         if (songImageUrl != null && songImageUrl.length() > 0) {
 
@@ -124,7 +123,17 @@ public class AudioActivity extends FragmentActivity
 
     @Override
     public void onAttachedToWindow() {
-        mediaController.show();
+
+        //((ViewGroup) mediaController.getParent()).removeView(mediaController);
+        //((FrameLayout) findViewById(R.id.controlsWrapper)).addView(mediaController);
+
+        //mediaController.show(0);
+        //mediaController.setSelected(true);
+        //stop();
+        //start();
+        mediaController.show(0);
+        mediaController.setEnabled(true);
+        mediaController.setKeepScreenOn(true);
     }
 
     private int findSong() {
@@ -165,16 +174,17 @@ public class AudioActivity extends FragmentActivity
 
         mAudioService.playSong(audioFile);
 
-        mediaController.setMediaPlayer(this);
+        //mediaController.setMediaPlayer(this);
         mediaController.setEnabled(true);
         // lets have the mediacontroller hide after
-        // two seconds
-        mediaController.show(2);
+
+        mediaController.show(0);
 
     }
 
     @Override
     public void onStart() {
+
         super.onStart();
     }
 
@@ -195,6 +205,10 @@ public class AudioActivity extends FragmentActivity
     public void start() {
         if (mAudioService != null)
             mAudioService.start();
+    }
+    public void stop() {
+        if (mAudioService != null)
+            mAudioService.stop();
     }
 
     @Override

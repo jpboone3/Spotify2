@@ -117,8 +117,8 @@ public class MainActivityFragment extends Fragment {
                     prefEditor.putInt("pref_artist_selected", -1); //**syntax error on tokens**
                     prefEditor.commit();
 
-
                 }
+                mStreamerList = null;
 
                 updateMartists();
                 return false;
@@ -326,7 +326,13 @@ public class MainActivityFragment extends Fragment {
             mArtist_name.setInputType(InputType.TYPE_CLASS_TEXT);
             //Log.d("lengthg ", "length: " + s.length);
             if (l == null || l.size() == 0) {
-                Toast.makeText(getActivity(), R.id.no_artists, Toast.LENGTH_LONG).show();
+                mStreamerList = null;
+                mListView.invalidate();
+                // if on a tablet, need to clear the track list
+                if (mCallback != null)
+                    mCallback.setAlbumSelected(mArtist, null);
+
+                    Toast.makeText(getActivity(), R.id.no_artists, Toast.LENGTH_LONG).show();
                 return;
             }
 

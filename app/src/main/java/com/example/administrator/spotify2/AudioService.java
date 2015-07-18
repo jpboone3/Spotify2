@@ -7,6 +7,7 @@ import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.MediaController;
 
 import java.io.IOException;
 
@@ -25,6 +26,7 @@ public class AudioService extends Service implements
     private static String currSong = " ";
     //binder
     private final IBinder musicBind = new AudioBinder();
+    private MediaController mediacontroller = null;
 
     public void onCreate() {
         //create the service
@@ -37,6 +39,23 @@ public class AudioService extends Service implements
         player.setOnPreparedListener(this);
         player.setOnCompletionListener(this);
         player.setOnErrorListener(this);
+
+
+        player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                //mp.stop();
+                mp.start();
+                if (mediacontroller != null)
+                    mediacontroller.show(0);
+            }
+        });
+    }
+    public void setMediaController(MediaController mc) {
+        mediacontroller = mc;
+    }
+    public MediaPlayer getMediaPlayer() {
+        return player;
     }
 
     //activity will bind to service

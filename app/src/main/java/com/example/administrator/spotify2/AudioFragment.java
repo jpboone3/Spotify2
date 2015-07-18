@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,22 +47,21 @@ public class AudioFragment extends DialogFragment
     private static ArrayList<String> tracks;
     private static ArrayList<String> images;
     private ImageView mSongImage = null;
-    private boolean mMmediaCleaned = false;
     private Handler handler = new Handler();
-    private AudioService mAudioService;
-    private ServiceConnection mAudioConnection = null;
+    private static AudioService mAudioService;
+    private static ServiceConnection mAudioConnection = null;
     private View rootView = null;
     private Intent playIntent;
     private MediaController mediaController = null;
     private Context mContext;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = getActivity().getApplicationContext();
 
         //connect to the service
-        mAudioConnection = new ServiceConnection() {
+        if (mAudioConnection == null)
+            mAudioConnection = new ServiceConnection() {
 
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {
@@ -97,6 +97,31 @@ public class AudioFragment extends DialogFragment
 
         ((TextView) rootView.findViewById(R.id.now_playing_text)).setText(trackName);
         mSongImage = (ImageView) rootView.findViewById(R.id.song_image);
+
+        mediaController = new MediaController(getActivity());
+
+        mediaController.setMediaPlayer(this);
+        mediaController.setAnchorView(rootView.findViewById(R.id.main_audio_view));
+        mediaController.setEnabled(true);
+        mediaController.requestFocus();
+
+        ((ViewGroup) mediaController.getParent()).removeView(mediaController);
+        ((FrameLayout) rootView.findViewById(R.id.controlsWrapper)).addView(mediaController);
+
+        mediaController.setPrevNextListeners(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Handle next click here
+                setNewSong(true);
+            }
+        }, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Handle previous click here
+                setNewSong(false);
+            }
+        });
+
 
         AudioFragment.SongimagetaSk task = new AudioFragment.SongimagetaSk();
         if (songImageUrl != null && songImageUrl.length() > 0) {
@@ -165,29 +190,6 @@ public class AudioFragment extends DialogFragment
     @Override
     public void onStart() {
         super.onStart();
-        mediaController = new MediaController(getActivity());
-
-        mediaController.setMediaPlayer(this);
-        mediaController.setAnchorView(rootView.findViewById(R.id.main_audio_view));
-        mediaController.setEnabled(true);
-        mediaController.requestFocus();
-
-        ((ViewGroup) mediaController.getParent()).removeView(mediaController);
-        ((FrameLayout) rootView.findViewById(R.id.controlsWrapper)).addView(mediaController);
-
-        mediaController.setPrevNextListeners(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Handle next click here
-                setNewSong(true);
-            }
-        }, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Handle previous click here
-                setNewSong(false);
-            }
-        });
 
     }
 
@@ -201,6 +203,11 @@ public class AudioFragment extends DialogFragment
     public void start() {
         if (mAudioService != null)
             mAudioService.start();
+    }
+
+    public void stop() {
+        if (mAudioService != null)
+            mAudioService.stop();
     }
 
     @Override

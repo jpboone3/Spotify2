@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/scrollView"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/main_audio_view"
@@ -6,6 +11,7 @@
     android:layout_height="match_parent"
     android:layout_gravity="center"
     android:orientation="vertical">
+
 
     <TextView
         android:id="@+id/now_playing_artist"
@@ -59,4 +65,6 @@
         android:layout_width="match_parent"
         android:id="@+id/controlsWrapper"
         android:layout_height="wrap_content"></FrameLayout>
+
 </LinearLayout>
+</ScrollView>
