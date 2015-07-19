@@ -70,6 +70,7 @@ public class AudioActivity extends FragmentActivity
 
         ((TextView) findViewById(R.id.now_playing_text)).setText(trackName);
 
+
         mediaController = new MediaController(this);
 
         mSongImage = (ImageView) findViewById(R.id.song_image);
@@ -81,9 +82,22 @@ public class AudioActivity extends FragmentActivity
                 //get service
                 mAudioService = binder.getService();
                 if (mAudioService != null) {
-                    //mediaController.setMediaPlayer((MediaController.MediaPlayerControl) mAudioService.getMediaPlayer());
+
                     //mAudioService.setMediaController(mediaController);
                     mAudioService.playSong(audioFile);
+                    /*
+                    handler.post(new Runnable() {
+
+                        public void run() {
+                            mAudioService.playSong(audioFile);
+                            mediaController.setEnabled(true);
+                            mediaController.hide();
+                            mediaController.show(0);
+                        }
+                    });
+                    */
+                    //mediaController.show(0);
+
                     //mAudioService.stop();
                 }
 
@@ -99,6 +113,10 @@ public class AudioActivity extends FragmentActivity
         getApplicationContext().bindService(playIntent, mAudioConnection, Context.BIND_AUTO_CREATE);
 
         mediaController.setMediaPlayer(this);
+
+        //((ViewGroup) mediaController.getParent()).removeView(mediaController);
+        //((FrameLayout) findViewById(R.id.controlsWrapper)).addView(mediaController);
+
         mediaController.setAnchorView(findViewById(R.id.controlsWrapper));
 
         mediaController.setPrevNextListeners(new View.OnClickListener() {
@@ -124,16 +142,9 @@ public class AudioActivity extends FragmentActivity
     @Override
     public void onAttachedToWindow() {
 
-        //((ViewGroup) mediaController.getParent()).removeView(mediaController);
-        //((FrameLayout) findViewById(R.id.controlsWrapper)).addView(mediaController);
-
-        //mediaController.show(0);
-        //mediaController.setSelected(true);
-        //stop();
-        //start();
-        mediaController.show(0);
-        mediaController.setEnabled(true);
         mediaController.setKeepScreenOn(true);
+        mediaController.bringToFront();
+        mediaController.show(0);
     }
 
     private int findSong() {
@@ -177,7 +188,6 @@ public class AudioActivity extends FragmentActivity
         //mediaController.setMediaPlayer(this);
         mediaController.setEnabled(true);
         // lets have the mediacontroller hide after
-
         mediaController.show(0);
 
     }
@@ -200,7 +210,12 @@ public class AudioActivity extends FragmentActivity
         mediaController.show(0);
         return false;
     }
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
 
+        mediaController.show(0);
+        return super.dispatchTouchEvent(event);
+    }
     @Override
     public void start() {
         if (mAudioService != null)
@@ -213,6 +228,7 @@ public class AudioActivity extends FragmentActivity
 
     @Override
     public boolean canPause() {
+
         return true;
     }
 
@@ -233,16 +249,18 @@ public class AudioActivity extends FragmentActivity
 
     @Override
     public int getDuration() {
+        int dur = 0;
         if (mAudioService != null)
-            return mAudioService.getDuration();
-        return 0;
+            dur = mAudioService.getDuration();
+        return dur;
     }
 
     @Override
     public int getCurrentPosition() {
+        int pos = 0;
         if (mAudioService != null)
-            return mAudioService.getCurrentPosition();
-        return 0;
+            pos = mAudioService.getCurrentPosition();
+        return pos;
     }
 
     @Override

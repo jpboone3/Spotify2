@@ -11,7 +11,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,12 +51,16 @@ public class AudioFragment extends DialogFragment
     private static ServiceConnection mAudioConnection = null;
     private View rootView = null;
     private Intent playIntent;
-    private MediaController mediaController = null;
+    private static MediaController mediaController = null;
     private Context mContext;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = getActivity().getApplicationContext();
+
+        if (mediaController == null)
+            mediaController = new MediaController(getActivity());
 
         //connect to the service
         if (mAudioConnection == null)
@@ -98,7 +101,6 @@ public class AudioFragment extends DialogFragment
         ((TextView) rootView.findViewById(R.id.now_playing_text)).setText(trackName);
         mSongImage = (ImageView) rootView.findViewById(R.id.song_image);
 
-        mediaController = new MediaController(getActivity());
 
         mediaController.setMediaPlayer(this);
         mediaController.setAnchorView(rootView.findViewById(R.id.main_audio_view));
@@ -185,6 +187,8 @@ public class AudioFragment extends DialogFragment
 
         mediaController.setMediaPlayer(this);
         mediaController.setEnabled(true);
+        mediaController.setKeepScreenOn(true);
+        mediaController.bringToFront();
     }
 
     @Override
@@ -192,6 +196,7 @@ public class AudioFragment extends DialogFragment
         super.onStart();
 
     }
+
 
     @Override
     public void onDestroy() {

@@ -181,6 +181,9 @@ public class DetailActivityFragment extends Fragment {
                 for (int j = 0; j < mCount; j++) {
                     StreamerArtist mSa = (StreamerArtist) mListView.getAdapter().getItem(j);
                     songs.add(mSa.getPreviewUrl());
+                    dur = mSa.getDuration() / 1000;
+                    min = dur / 60;
+                    sec = dur % 60;
                     String mTrack = String.format("%s  (Duration: %02d:%02d )",
                             mSa.getName(), min, sec);
                     tracks.add(mTrack);
